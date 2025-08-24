@@ -18,6 +18,11 @@ on:
 jobs:
   code-quolity:
     runs-on: ubuntu-latest
+    container: 
+      image: ghcr.io/kaito-siba/tauri-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.CI_TOKEN }}
     permissions:
       contents: read
     steps:
@@ -47,19 +52,20 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo + target
-        uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri -> target
 
       - name: Rust check
         working-directory: src-tauri
         run: |
+          cargo check --workspace --all-features --locked
+          cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
           cargo fmt --all -- --check
-          cargo clippy --workspace --all-targets -- -D warnings
+
