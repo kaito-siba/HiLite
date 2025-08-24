@@ -28,6 +28,7 @@
             libsoup_3
             webkitgtk_4_1
             pkg-config
+            biome
           ];
 
           shellHook = ''
