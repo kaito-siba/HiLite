@@ -2,10 +2,41 @@ import { invoke } from "@tauri-apps/api/core";
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
+import { useShallow } from "zustand/shallow";
+
+interface BearState {
+	bears: number;
+	increase: (by: number) => void;
+	removeAll: () => void;
+}
+
+const useBearStore = create<BearState>()(
+	devtools(
+		persist(
+			(set) => ({
+				bears: 0,
+				increase: (by) => set((state) => ({ bears: state.bears + by })),
+				removeAll: () => set({ bears: 0 }),
+			}),
+			{
+				name: "bear-storage",
+			},
+		),
+	),
+);
 
 function App() {
 	const [greetMsg, setGreetMsg] = useState("");
 	const [name, setName] = useState("");
+	const { bears, increasePopulation, removeAllBears } = useBearStore(
+		useShallow((state) => ({
+			bears: state.bears,
+			increasePopulation: state.increase,
+			removeAllBears: state.removeAll,
+		})),
+	);
 
 	async function greet() {
 		// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -44,6 +75,15 @@ function App() {
 				<button type="submit">Greet</button>
 			</form>
 			<p>{greetMsg}</p>
+
+			<p>Bears: {bears}</p>
+
+			<button type="button" onClick={() => increasePopulation(1)}>
+				increase
+			</button>
+			<button type="button" onClick={removeAllBears}>
+				remove
+			</button>
 		</main>
 	);
 }
