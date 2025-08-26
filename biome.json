@@ -19,6 +19,9 @@
 			"recommended": true,
 			"correctness": {
 				"useUniqueElementIds": "warn"
+			},
+			"a11y": {
+				"useMediaCaption": "warn"
 			}
 		}
 	},
